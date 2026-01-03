@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import Home from './pages/Home';
 import Schedule from './pages/Schedule';
 import PointsTable from './pages/PointsTable';
@@ -7,6 +8,8 @@ import Admin from './pages/Admin';
 import Fixtures from './pages/Fixtures';
 
 function App() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <Router>
       <div className="app-container">
@@ -14,12 +17,19 @@ function App() {
           <div className="nav-logo">
             <span className="red">ANNUAL</span> SPORTS & GAMES
           </div>
-          <div className="nav-links">
-            <Link to="/">Home</Link>
-            <Link to="/schedule">Schedule</Link>
-            <Link to="/fixtures">Fixtures</Link>
-            <Link to="/points">Points Table</Link>
-            <Link to="/admin" className="admin-link">Admin</Link>
+
+          {/* Mobile Menu Button */}
+          <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+
+          {/* Desktop Navigation */}
+          <div className={`nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+            <Link to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+            <Link to="/schedule" onClick={() => setMobileMenuOpen(false)}>Schedule</Link>
+            <Link to="/fixtures" onClick={() => setMobileMenuOpen(false)}>Fixtures</Link>
+            <Link to="/points" onClick={() => setMobileMenuOpen(false)}>Points Table</Link>
+            <Link to="/admin" className="admin-link" onClick={() => setMobileMenuOpen(false)}>Admin</Link>
           </div>
         </nav>
 
@@ -61,6 +71,15 @@ function App() {
         }
         .red { color: var(--poster-red); }
         
+        .mobile-menu-btn {
+          display: none;
+          background: none;
+          border: none;
+          cursor: pointer;
+          color: var(--poster-blue);
+          padding: 0.5rem;
+        }
+        
         .nav-links {
           display: flex;
           gap: 2rem;
@@ -88,7 +107,61 @@ function App() {
           color: white !important;
         }
         .content {
-            padding: 0;
+          padding: 0;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+          .navbar {
+            padding: 1rem 1.5rem;
+            position: relative;
+          }
+          .nav-logo {
+            font-size: 1rem;
+          }
+          .mobile-menu-btn {
+            display: block;
+          }
+          .nav-links {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            background: #fff;
+            flex-direction: column;
+            gap: 0;
+            padding: 1rem 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-100%);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+          }
+          .nav-links.mobile-open {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+          }
+          .nav-links a {
+            padding: 1rem 2rem;
+            width: 100%;
+            border-bottom: 1px solid #f0f0f0;
+          }
+          .admin-link {
+            margin: 0.5rem 1.5rem;
+            width: calc(100% - 3rem);
+            text-align: center;
+          }
+        }
+
+        /* Tablet Responsive */
+        @media (max-width: 1024px) and (min-width: 769px) {
+          .nav-links {
+            gap: 1.5rem;
+          }
+          .nav-links a {
+            font-size: 0.85rem;
+          }
         }
       `}</style>
     </Router>

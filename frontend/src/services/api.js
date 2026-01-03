@@ -16,3 +16,9 @@ export const getPoints = () => axios.get(`${API_URL}/points`);
 export const createPoint = (data) => axios.post(`${API_URL}/points`, data);
 export const updatePoint = (id, data) => axios.put(`${API_URL}/points/${id}`, data);
 export const deletePoint = (id) => axios.delete(`${API_URL}/points/${id}`);
+
+export const getResults = () => axios.get(`${API_URL}/results`);
+export const createResult = (data) => axios.post(`${API_URL}/results`, data);
+export const updateResult = (id, data) => axios.put(`${API_URL}/results/${id}`, data);
+export const deleteResult = (id) => axios.delete(`${API_URL}/results/${id}`);
+

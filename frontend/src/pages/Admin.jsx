@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Edit2, Trash2, Save, X, Trophy } from 'lucide-react';
-import { getPrograms, createProgram, deleteProgram, updateProgram, getFixtures, createFixture, updateFixture, deleteFixture, getPoints, createPoint, updatePoint, deletePoint } from '../services/api';
+import { getPrograms, createProgram, deleteProgram, updateProgram, getFixtures, createFixture, updateFixture, deleteFixture, getResults, createResult, updateResult, deleteResult } from '../services/api';
 
 const Admin = () => {
   const [programs, setPrograms] = useState([]);
   const [fixtures, setFixtures] = useState([]);
-  const [points, setPoints] = useState([]);
   const [view, setView] = useState('programs');
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
   const [formData, setFormData] = useState({ day: '', date: '', sport: '', venue: '', category: 'Group', status: 'Upcoming' });
   const [fixtureData, setFixtureData] = useState({ sport: '', round: '', teamA: '', teamB: '', scoreA: '-', scoreB: '-', status: 'Upcoming' });
-  const [pointData, setPointData] = useState({ department: '', gold: 0, silver: 0, bronze: 0, total: 0 });
+  const [results, setResults] = useState([]);
+  const [resultData, setResultData] = useState({ studentName: '', programName: '', house: 'ASTRA', grade: 'A', points: 0, type: 'Individual' });
 
   useEffect(() => {
     fetchData();
@@ -20,10 +20,10 @@ const Admin = () => {
 
   const fetchData = async () => {
     try {
-      const [progRes, fixRes, pointRes] = await Promise.all([getPrograms(), getFixtures(), getPoints()]);
+      const [progRes, fixRes, resRes] = await Promise.all([getPrograms(), getFixtures(), getResults()]);
       setPrograms(progRes.data);
       setFixtures(fixRes.data);
-      setPoints(pointRes.data);
+      setResults(resRes.data);
     } catch (err) {
       console.error('Failed to fetch data:', err);
     }
@@ -34,7 +34,7 @@ const Admin = () => {
     setIsEditing(true);
     setFormData({ day: '', date: '', sport: '', venue: '', category: 'Group', status: 'Upcoming' });
     setFixtureData({ sport: '', round: '', teamA: '', teamB: '', scoreA: '-', scoreB: '-', status: 'Upcoming' });
-    setPointData({ department: '', gold: 0, silver: 0, bronze: 0, total: 0 });
+    setResultData({ studentName: '', programName: '', house: 'ASTRA', grade: 'A', points: 0, type: 'Individual' });
   };
 
   const handleEdit = (item) => {
@@ -45,7 +45,7 @@ const Admin = () => {
     } else if (view === 'fixtures') {
       setFixtureData({ sport: item.sport, round: item.round, teamA: item.teamA, teamB: item.teamB, scoreA: item.scoreA, scoreB: item.scoreB, status: item.status });
     } else {
-      setPointData({ department: item.department, gold: item.gold, silver: item.silver, bronze: item.bronze, total: item.total });
+      setResultData({ studentName: item.studentName, programName: item.programName, house: item.house, grade: item.grade, points: item.points, type: item.type });
     }
   };
 
@@ -63,12 +63,11 @@ const Admin = () => {
         } else {
           await createFixture(fixtureData);
         }
-      } else {
-        const payload = { ...pointData, total: (pointData.gold * 10) + (pointData.silver * 5) + (pointData.bronze * 2) };
+      } else if (view === 'results') {
         if (editId) {
-          await updatePoint(editId, payload);
+          await updateResult(editId, resultData);
         } else {
-          await createPoint(payload);
+          await createResult(resultData);
         }
       }
       fetchData();
@@ -85,8 +84,8 @@ const Admin = () => {
         await deleteProgram(id);
       } else if (view === 'fixtures') {
         await deleteFixture(id);
-      } else {
-        await deletePoint(id);
+      } else if (view === 'results') {
+        await deleteResult(id);
       }
       fetchData();
     }
@@ -99,9 +98,9 @@ const Admin = () => {
         <div className="admin-nav">
           <button onClick={() => setView('programs')} className={`tab ${view === 'programs' ? 'active' : ''}`}>Programs</button>
           <button onClick={() => setView('fixtures')} className={`tab ${view === 'fixtures' ? 'active' : ''}`}>Fixtures</button>
-          <button onClick={() => setView('points')} className={`tab ${view === 'points' ? 'active' : ''}`}>Points Table</button>
+          <button onClick={() => setView('results')} className={`tab ${view === 'results' ? 'active' : ''}`}>Results</button>
         </div>
-        <button onClick={handleCreate} className="btn-primary"><Plus size={18} /> New {view === 'programs' ? 'Entry' : view === 'fixtures' ? 'Match' : 'Department'}</button>
+        <button onClick={handleCreate} className="btn-primary"><Plus size={18} /> New {view === 'programs' ? 'Entry' : view === 'fixtures' ? 'Match' : 'Result'}</button>
       </header>
 
       <div className="admin-content">
@@ -175,33 +174,35 @@ const Admin = () => {
           </section>
         )}
 
-        {view === 'points' && (
-          <section className="points-management glass">
-            <h2>Department Rankings</h2>
+        {view === 'results' && (
+          <section className="results-management glass">
+            <h2>Results Management</h2>
             <div className="table-responsive">
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>Department</th>
-                    <th>Gold</th>
-                    <th>Silver</th>
-                    <th>Bronze</th>
-                    <th>Total</th>
+                    <th>Student Name</th>
+                    <th>Program</th>
+                    <th>House</th>
+                    <th>Grade</th>
+                    <th>Points</th>
+                    <th>Type</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {points.map(pt => (
-                    <tr key={pt._id}>
-                      <td className="sport-cell">{pt.department}</td>
-                      <td><div className="ribbon-mini" style={{ background: '#FFD700', color: '#000' }}>{pt.gold}</div></td>
-                      <td><div className="ribbon-mini" style={{ background: '#C0C0C0', color: '#000' }}>{pt.silver}</div></td>
-                      <td><div className="ribbon-mini" style={{ background: '#CD7F32', color: '#000' }}>{pt.bronze}</div></td>
-                      <td className="red-cell">{pt.total}</td>
+                  {results.map(res => (
+                    <tr key={res._id}>
+                      <td className="sport-cell">{res.studentName}</td>
+                      <td>{res.programName}</td>
+                      <td className="navy-cell">{res.house}</td>
+                      <td><div className="ribbon-mini">{res.grade}</div></td>
+                      <td className="red-cell">{res.points}</td>
+                      <td>{res.type}</td>
                       <td>
                         <div className="actions">
-                          <button className="icon-btn edit" onClick={() => handleEdit(pt)}><Edit2 size={16} /></button>
-                          <button className="icon-btn delete" onClick={() => handleDelete(pt._id)}><Trash2 size={16} /></button>
+                          <button className="icon-btn edit" onClick={() => handleEdit(res)}><Edit2 size={16} /></button>
+                          <button className="icon-btn delete" onClick={() => handleDelete(res._id)}><Trash2 size={16} /></button>
                         </div>
                       </td>
                     </tr>
@@ -215,7 +216,7 @@ const Admin = () => {
         {isEditing && (
           <div className="modal-overlay">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="modal glass">
-              <h3 className="navy">{editId ? 'Edit' : 'Add New'} {view === 'programs' ? 'Program' : view === 'fixtures' ? 'Fixture' : 'Point'}</h3>
+              <h3 className="navy">{editId ? 'Edit' : 'Add New'} {view === 'programs' ? 'Program' : view === 'fixtures' ? 'Fixture' : view === 'points' ? 'Point' : 'Result'}</h3>
 
               {view === 'programs' && (
                 <div className="form-grid">
@@ -283,36 +284,57 @@ const Admin = () => {
                 </div>
               )}
 
-              {view === 'points' && (
+              {view === 'results' && (
                 <div className="form-grid">
-                  <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                    <label htmlFor="pt-dept">Department Name</label>
-                    <input id="pt-dept" type="text" value={pointData.department} onChange={e => setPointData({ ...pointData, department: e.target.value.toUpperCase() })} />
+                  <div className="form-group">
+                    <label htmlFor="res-name">Student Name</label>
+                    <input id="res-name" type="text" value={resultData.studentName} onChange={e => setResultData({ ...resultData, studentName: e.target.value })} />
                   </div>
                   <div className="form-group">
-                    <label htmlFor="pt-gold">Gold Medals</label>
-                    <input id="pt-gold" type="number" value={pointData.gold} onChange={e => setPointData({ ...pointData, gold: parseInt(e.target.value) || 0 })} />
+                    <label htmlFor="res-prog">Program Name</label>
+                    <input id="res-prog" type="text" value={resultData.programName} onChange={e => setResultData({ ...resultData, programName: e.target.value })} />
                   </div>
                   <div className="form-group">
-                    <label htmlFor="pt-silver">Silver Medals</label>
-                    <input id="pt-silver" type="number" value={pointData.silver} onChange={e => setPointData({ ...pointData, silver: parseInt(e.target.value) || 0 })} />
+                    <label htmlFor="res-house">House</label>
+                    <select id="res-house" value={resultData.house} onChange={e => setResultData({ ...resultData, house: e.target.value })}>
+                      <option value="ASTRA">ASTRA</option>
+                      <option value="EAKHA">EAKHA</option>
+                      <option value="LOKHA">LOKHA</option>
+                    </select>
                   </div>
                   <div className="form-group">
-                    <label htmlFor="pt-bronze">Bronze Medals</label>
-                    <input id="pt-bronze" type="number" value={pointData.bronze} onChange={e => setPointData({ ...pointData, bronze: parseInt(e.target.value) || 0 })} />
+                    <label htmlFor="res-grade">Grade</label>
+                    <select id="res-grade" value={resultData.grade} onChange={e => setResultData({ ...resultData, grade: e.target.value })}>
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="C">C</option>
+                      <option value="Participated">Participated</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="res-points">Points</label>
+                    <input id="res-points" type="number" value={resultData.points} onChange={e => setResultData({ ...resultData, points: parseInt(e.target.value) || 0 })} />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="res-type">Type</label>
+                    <select id="res-type" value={resultData.type} onChange={e => setResultData({ ...resultData, type: e.target.value })}>
+                      <option value="Individual">Individual</option>
+                      <option value="Group">Group</option>
+                    </select>
                   </div>
                 </div>
               )}
+
               <div className="modal-actions">
                 <button onClick={() => setIsEditing(false)} className="btn-outline glass"><X size={18} /> Cancel</button>
                 <button onClick={handleSave} className="btn-primary">
-                  {editId ? 'Update' : 'Save'} {view === 'programs' ? 'Program' : view === 'fixtures' ? 'Fixture' : 'Point'}
+                  {editId ? 'Update' : 'Save'} {view === 'programs' ? 'Program' : view === 'fixtures' ? 'Fixture' : 'Result'}
                 </button>
               </div>
             </motion.div>
           </div>
         )}
-      </div>
+      </div >
 
       <style>{`
         .admin-page {
@@ -438,8 +460,52 @@ const Admin = () => {
             border-radius: 4px;
             cursor: pointer;
         }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .admin-page {
+                padding: 0 0.5rem;
+                margin: 1rem auto;
+            }
+            .page-header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+                text-align: center;
+            }
+            .admin-nav {
+                width: 100%;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+                justify-content: flex-start;
+            }
+            .tab {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+                white-space: nowrap;
+            }
+            .admin-table th, .admin-table td {
+                padding: 1rem 0.5rem;
+                font-size: 0.85rem;
+            }
+            .modal {
+                width: 95%;
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .modal-actions {
+                flex-direction: column;
+            }
+            .modal-actions button {
+                width: 100%;
+            }
+        }
       `}</style>
-    </div>
+    </div >
   );
 };
 

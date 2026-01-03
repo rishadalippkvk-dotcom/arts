@@ -13,11 +13,10 @@ app.use(express.json());
 // Routes
 const programRoutes = require('./routes/programRoutes');
 const fixtureRoutes = require('./routes/fixtureRoutes');
-const pointRoutes = require('./routes/pointRoutes');
 
 app.use('/api/programs', programRoutes);
 app.use('/api/fixtures', fixtureRoutes);
-app.use('/api/points', pointRoutes);
+app.use('/api/results', require('./routes/resultRoutes'));
 
 // Database Connection
 mongoose.connect(process.env.MONGODB_URI)

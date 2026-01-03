@@ -176,7 +176,21 @@ const Fixtures = () => {
         .loading, .no-matches { text-align: center; color: #666; margin-top: 2rem; }
 
         @media (max-width: 768px) {
-          .bracket-container { flex-direction: column; }
+          .page-header h1 { font-size: 1.8rem; }
+          .page-header p { font-size: 0.9rem; }
+          .bracket-container { 
+            flex-direction: column; 
+            align-items: center;
+            gap: 2rem;
+          }
+          .round {
+            min-width: 100%;
+            width: 100%;
+          }
+          .match-card {
+            padding: 1.2rem;
+          }
+          .team-name { font-size: 0.9rem; }
         }
       `}</style>
     </div>
