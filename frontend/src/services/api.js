@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://artsapibackend.vercel.app/api';
+const API_URL = 'http://localhost:5000/api';
 
 export const getPrograms = () => axios.get(`${API_URL}/programs`);
 export const createProgram = (data) => axios.post(`${API_URL}/programs`, data);
